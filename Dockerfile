@@ -1,5 +1,5 @@
 # https://www.lpalmieri.com/posts/fast-rust-docker-builds
-FROM lukemathwalker/cargo-chef:latest-rust-1.91.0 AS chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.92.0 AS chef
 WORKDIR /app
 
 FROM chef AS planner
