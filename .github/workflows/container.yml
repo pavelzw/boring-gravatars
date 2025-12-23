@@ -1,4 +1,4 @@
-name: Build
+name: Container
 on:
   pull_request:
   push:
