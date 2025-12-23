@@ -10,7 +10,22 @@ Start the server:
 cargo run
 ```
 
-The server listens on `http://0.0.0.0:8000`.
+### Command Line Options
+
+```
+Options:
+  -H, --host <HOST>          Host address to bind to [default: 0.0.0.0]
+  -p, --port <PORT>          Port to listen on [default: 8000]
+  -m, --max-size <MAX_SIZE>  Maximum allowed avatar size in pixels [default: 512]
+  -h, --help                 Print help
+  -V, --version              Print version
+```
+
+Example with custom settings:
+
+```bash
+cargo run -- --host 127.0.0.1 --port 3000 --max-size 1024
+```
 
 Request an avatar:
 
@@ -22,7 +37,7 @@ GET /avatar/{hash}?d={style}&s={size}
 
 - `hash` - MD5 hash of the user's email (standard Gravatar format)
 - `d` - Default/fallback style (optional, defaults to `identicon`)
-- `s` - Size in pixels (optional, defaults to 80, max 512)
+- `s` - Size in pixels (optional, defaults to 80, max configurable via `--max-size`)
 
 ### Supported Styles
 

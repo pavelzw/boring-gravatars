@@ -1,19 +1,42 @@
 use axum::{
     Router,
-    extract::{Path, Query},
+    extract::{Path, Query, State},
     http::{HeaderMap, HeaderValue, StatusCode, header},
     response::{IntoResponse, Response},
     routing::get,
 };
+use clap::Parser;
 use resvg::tiny_skia::{Pixmap, Transform};
 use resvg::usvg::{Options, Tree};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 const GRAVATAR_URL: &str = "https://www.gravatar.com/avatar";
 // todo: don't fetch this but calculate locally
 const BORING_AVATARS_URL: &str = "https://boring-avatars-api.vercel.app/api/avatar";
 const DEFAULT_SIZE: u32 = 80;
-const MAX_SIZE: u32 = 512;
+
+/// Gravatar-compatible avatar service with Boring Avatars fallback
+#[derive(Parser, Debug)]
+#[command(version, about)]
+struct Args {
+    /// Host address to bind to
+    #[arg(short = 'H', long, default_value = "0.0.0.0")]
+    host: String,
+
+    /// Port to listen on
+    #[arg(short, long, default_value_t = 8000)]
+    port: u16,
+
+    /// Maximum allowed avatar size in pixels
+    #[arg(short, long, default_value_t = 512)]
+    max_size: u32,
+}
+
+#[derive(Clone)]
+struct AppState {
+    max_size: u32,
+}
 
 #[derive(Clone, Copy)]
 enum Style {
@@ -109,14 +132,23 @@ impl Style {
 
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/avatar/{hash}", get(avatar_handler));
+    let args = Args::parse();
+    let state = Arc::new(AppState {
+        max_size: args.max_size,
+    });
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:8000").await.unwrap();
-    println!("Listening on http://0.0.0.0:8000");
+    let app = Router::new()
+        .route("/avatar/{hash}", get(avatar_handler))
+        .with_state(state);
+
+    let addr = format!("{}:{}", args.host, args.port);
+    let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
+    println!("Listening on http://{}", addr);
     axum::serve(listener, app).await.unwrap();
 }
 
 async fn avatar_handler(
+    State(state): State<Arc<AppState>>,
     Path(hash): Path<String>,
     Query(params): Query<HashMap<String, String>>,
 ) -> Response {
@@ -125,7 +157,7 @@ async fn avatar_handler(
         .get("s")
         .and_then(|s| s.parse::<u32>().ok())
         .unwrap_or(DEFAULT_SIZE)
-        .min(MAX_SIZE);
+        .min(state.max_size);
 
     let style = match Style::from_str(style_str) {
         Some(s) => s,

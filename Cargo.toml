@@ -10,6 +10,7 @@ rustls-tls = ["reqwest/rustls-tls"]
 
 [dependencies]
 axum = "0.8.8"
+clap = { version = "4.5.53", features = ["derive"] }
 tokio = { version = "1.48.0", features = ["rt-multi-thread"] }
 reqwest = { version = "0.12.28", default-features = false }
 resvg = "0.45.1"
