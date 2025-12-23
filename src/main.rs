@@ -11,6 +11,7 @@ use resvg::usvg::{Options, Tree};
 use std::collections::HashMap;
 use std::sync::Arc;
 
+// https://docs.gravatar.com/sdk/images/
 const GRAVATAR_URL: &str = "https://www.gravatar.com/avatar";
 // todo: don't fetch this but calculate locally
 const BORING_AVATARS_URL: &str = "https://boring-avatars-api.vercel.app/api/avatar";
@@ -31,11 +32,16 @@ struct Args {
     /// Maximum allowed avatar size in pixels
     #[arg(short, long, default_value_t = 512)]
     max_size: u32,
+
+    /// Force a specific style, ignoring the ?d query parameter
+    #[arg(short, long)]
+    force_style: Option<String>,
 }
 
 #[derive(Clone)]
 struct AppState {
     max_size: u32,
+    force_style: Option<Style>,
 }
 
 #[derive(Clone, Copy)]
@@ -133,8 +139,17 @@ impl Style {
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
+
+    let force_style = args.force_style.as_ref().map(|s| {
+        Style::from_str(s).unwrap_or_else(|| {
+            eprintln!("Unknown force-style: {}", s);
+            std::process::exit(1);
+        })
+    });
+
     let state = Arc::new(AppState {
         max_size: args.max_size,
+        force_style,
     });
 
     let app = Router::new()
@@ -152,21 +167,25 @@ async fn avatar_handler(
     Path(hash): Path<String>,
     Query(params): Query<HashMap<String, String>>,
 ) -> Response {
-    let style_str = params.get("d").map(|s| s.as_str()).unwrap_or("identicon");
     let size = params
         .get("s")
         .and_then(|s| s.parse::<u32>().ok())
         .unwrap_or(DEFAULT_SIZE)
         .min(state.max_size);
 
-    let style = match Style::from_str(style_str) {
-        Some(s) => s,
-        None => {
-            return (
-                StatusCode::BAD_REQUEST,
-                format!("Unknown style: {}", style_str),
-            )
-                .into_response();
+    let style = if let Some(forced) = state.force_style {
+        forced
+    } else {
+        let style_str = params.get("d").map(|s| s.as_str()).unwrap_or("identicon");
+        match Style::from_str(style_str) {
+            Some(s) => s,
+            None => {
+                return (
+                    StatusCode::BAD_REQUEST,
+                    format!("Unknown style: {}", style_str),
+                )
+                    .into_response();
+            }
         }
     };
 

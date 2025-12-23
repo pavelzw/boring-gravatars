@@ -14,11 +14,12 @@ cargo run
 
 ```
 Options:
-  -H, --host <HOST>          Host address to bind to [default: 0.0.0.0]
-  -p, --port <PORT>          Port to listen on [default: 8000]
-  -m, --max-size <MAX_SIZE>  Maximum allowed avatar size in pixels [default: 512]
-  -h, --help                 Print help
-  -V, --version              Print version
+  -H, --host <HOST>              Host address to bind to [default: 0.0.0.0]
+  -p, --port <PORT>              Port to listen on [default: 8000]
+  -m, --max-size <MAX_SIZE>      Maximum allowed avatar size in pixels [default: 512]
+  -f, --force-style <STYLE>      Force a specific style, ignoring the ?d query parameter
+  -h, --help                     Print help
+  -V, --version                  Print version
 ```
 
 Example with custom settings:
