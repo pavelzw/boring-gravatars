@@ -22,3 +22,13 @@ updates:
       prefix: build
     labels:
       - dependencies
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      docker:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: chore
