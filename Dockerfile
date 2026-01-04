@@ -15,7 +15,7 @@ COPY . .
 RUN cargo build --release
 
 # We do not need the Rust toolchain to run the binary!
-FROM debian:bookworm-20251208-slim AS runtime
+FROM debian:bookworm-20251229-slim AS runtime
 WORKDIR /app
 COPY --from=builder /app/target/release/boring-gravatars /usr/local/bin/boring-gravatars
 ENTRYPOINT ["/usr/local/bin/boring-gravatars"]
