@@ -1,5 +1,5 @@
 # https://www.lpalmieri.com/posts/fast-rust-docker-builds
-FROM lukemathwalker/cargo-chef:latest-rust-1.93.1 AS chef
+FROM lukemathwalker/cargo-chef:latest-rust-1.95.0 AS chef
 WORKDIR /app
 
 FROM chef AS planner
@@ -15,7 +15,7 @@ COPY . .
 RUN cargo build --release
 
 # We do not need the Rust toolchain to run the binary!
-FROM debian:bookworm-20260223-slim AS runtime
+FROM debian:bookworm-20260421-slim AS runtime
 WORKDIR /app
 COPY --from=builder /app/target/release/boring-gravatars /usr/local/bin/boring-gravatars
 ENTRYPOINT ["/usr/local/bin/boring-gravatars"]
